@@ -203,6 +203,20 @@ class _MainScreenState extends State<MainScreen> {
                             ),
                           );
                         },
+                        onDoubleTap:() {
+                          if (dealerCode == groupCode) {
+                            generateTestDriveSignOff(groupCode, dealerName!);
+                          } else {
+                            Fluttertoast.showToast(
+                                msg:
+                                "Sign off not allowed for child dealer!!!",
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                // also possible "TOP" and "CENTER"
+                                backgroundColor: Colors.black,
+                                textColor: Colors.white);
+                          }
+                        },
                         child: Card(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15.0),

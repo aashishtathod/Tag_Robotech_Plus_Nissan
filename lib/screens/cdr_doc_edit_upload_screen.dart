@@ -117,35 +117,36 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
     }
 
     if (ok1 && ok2 && ok3 && ok4 && ok5) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text("Button clicked"),
-      ));
-      var data = {
-        "customer_booking_form": (one) ? "Yes" : "No",
-        "DMS_retail_inv": (two) ? "Yes" : "No",
-        "DMS_gate_pass": (three) ? "Yes" : "No",
-        "payment_prof": (four) ? "Yes" : "No",
-        "registration_document": (five) ? "Yes" : "No",
-        "username": widget.dealerCode,
-        "password": widget.password,
-        "id": widget.id,
-      };
-      var response = await http.post(
-        Uri.parse(postCdrData),
-        body: data,
-      );
+      createSnackBar("Uploading data, please wait !");
 
-      print("post api");
-      print(response.body);
-      if (response.statusCode == 200) {
-        showAlertDialog(context, "Success", "Data uploaded successfully.");
+      try {
+        var data = {
+          "customer_booking_form": (one) ? "Yes" : "No",
+          "DMS_retail_inv": (two) ? "Yes" : "No",
+          "DMS_gate_pass": (three) ? "Yes" : "No",
+          "payment_prof": (four) ? "Yes" : "No",
+          "registration_document": (five) ? "Yes" : "No",
+          "username": widget.dealerCode.toString(),
+          "password": widget.password.toString(),
+          "id": widget.id.toString(),
+        };
+
+        var response = await http.post(
+          Uri.parse(postCdrData),
+          body: data,
+        );
+
+        if (response.statusCode == 200) {
+          showAlertDialog(context, "Success", "Data uploaded successfully.");
+        }
+      } catch (e) {
+        print(e);
+        createSnackBar("Failed to upload data.");
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text("Please upload the image or make particular button off"),
-      ));
+      createSnackBar("Please upload the required images , or make particular one  \"No\".");
     }
-    return null;
+    //return null;
   }
 
   createCard1(String doc) {
@@ -533,14 +534,13 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
         ));
   }
 
-
-
   showAlertDialog(BuildContext context, String title, String msg) {
     // set up the button
     Widget okButton = TextButton(
       child: Text("OK"),
       onPressed: () {
-        Navigator.push(
+        Navigator.pop(context);
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) {
@@ -556,6 +556,7 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
     AlertDialog alert = AlertDialog(
       title: Text(title),
       content: Text(msg),
+
       actions: [
         okButton,
       ],
@@ -563,6 +564,7 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
 
     // show the dialog
     showDialog(
+      barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {
         return alert;
@@ -612,5 +614,14 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
         ),
       ],
     );
+  }
+
+  createSnackBar(String msg) {
+    return ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg),
+      padding: const EdgeInsets.all(10),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      behavior: SnackBarBehavior.floating,
+    ));
   }
 }
