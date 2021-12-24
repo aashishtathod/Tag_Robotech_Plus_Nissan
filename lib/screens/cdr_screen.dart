@@ -14,11 +14,12 @@ import 'package:robotech/res/custom_colors.dart';
 import 'package:robotech/screens/cdr_doc_edit_upload_screen.dart';
 
 class CDRScreen extends StatefulWidget {
-  late String groupCode, dealerCode, password;
+  late String dealerCode, password;
+  String? groupCode;
 
   CDRScreen(
       {Key? key,
-      required this.groupCode,
+      this.groupCode,
       required this.dealerCode,
       required this.password})
       : super(key: key);
@@ -38,27 +39,29 @@ class _CDRScreenState extends State<CDRScreen> {
   }
 
   Future<List<Datum>> _fetchCdrData(String dealerCode, String password) async {
-    // This below code will call only ones. This will return the same data directly without performing any Future task.
-    await Future.delayed(const Duration(seconds: 1));
-    var data = {'username': dealerCode, 'password': password};
+    return _memoizer.runOnce(() async {
+      // This below code will call only ones. This will return the same data directly without performing any Future task.
+      await Future.delayed(const Duration(seconds: 1));
+      var data = {'username': dealerCode, 'password': password};
 
-    final response =
-        await http.get(Uri.parse(getCdrDAta).replace(queryParameters: data));
+      final response =
+          await http.get(Uri.parse(getCdrDAta).replace(queryParameters: data));
 
-    setState(() {
-      isLoading = false;
+      setState(() {
+        isLoading = false;
+      });
+
+      if (response.statusCode == 200) {
+        var jsonResponse = json.decode(response.body);
+        GetCdrData data = GetCdrData.fromJson(jsonResponse);
+        //print(data.data);
+        return data.data;
+      } else {
+        log('Failed to load Data from CDR API');
+        List<Datum> emptyList = [];
+        return emptyList;
+      }
     });
-
-    if (response.statusCode == 200) {
-      var jsonResponse = json.decode(response.body);
-      GetCdrData data = GetCdrData.fromJson(jsonResponse);
-      //print(data.data);
-      return data.data;
-    } else {
-      log('Failed to load Data from CDR API');
-      List<Datum> emptyList = [];
-      return emptyList;
-    }
   }
 
   @override
@@ -88,6 +91,7 @@ class _CDRScreenState extends State<CDRScreen> {
                                 MaterialPageRoute(
                                   builder: (context) {
                                     return CdrItemStatus(
+                                      id: snapshot.data![index].id,
                                       vin: snapshot.data![index].vin,
                                       customerBookingForm: snapshot
                                           .data![index].customerBookingForm,
@@ -203,6 +207,7 @@ class _CDRScreenState extends State<CDRScreen> {
 }
 
 class CdrItemStatus extends StatefulWidget {
+  late int id;
   late String vin,
       customerBookingForm,
       dmsRetailInv,
@@ -214,6 +219,7 @@ class CdrItemStatus extends StatefulWidget {
 
   CdrItemStatus({
     Key? key,
+    required this.id,
     required this.vin,
     required this.customerBookingForm,
     required this.dmsRetailInv,
@@ -340,6 +346,7 @@ class _CdrItemStatusState extends State<CdrItemStatus> {
               builder: (context) {
                 return CdrDocEditScreen(
                   vin: widget.vin,
+                  id: widget.id,
                   dealerCode: widget.dealerCode,
                   password: widget.password,
                 );

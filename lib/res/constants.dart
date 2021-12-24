@@ -11,6 +11,7 @@ const String updateStockStatus = "$apiUrl/updateStatus";
 const String generateReport = "$apiUrl/generateReport";
 const String fetchData = "$apiUrl/fetchData";
 const String saveTestDriveImage = "$apiUrl/saveTestDriveImage";
-const String cdrUrl = "http://robotech.stagingapps.xyz/api";//getCdr?username=GW1A&password=123456
-const String getCdrDAta = "$cdrUrl/getCdr";
+const String cdrGetUrl = "http://robotech.stagingapps.xyz/api";
+const String getCdrDAta = "$cdrGetUrl/getCdr";
+const String postCdrData = "https://robotech.stagingapps.xyz/api/editcdr";
 //http://robotech.stagingapps.xyz/api/getCdr?username=GW1A&password=123456

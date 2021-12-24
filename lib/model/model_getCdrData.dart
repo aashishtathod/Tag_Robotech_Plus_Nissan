@@ -14,6 +14,7 @@ class GetCdrData {
 
 class Datum {
   Datum({
+    required this.id,
     required this.vin,
     required this.make,
     required this.mmodel,
@@ -27,6 +28,7 @@ class Datum {
     required this.remark,
   });
 
+  late int id;
   late String vin;
   late String make;
   late String mmodel;
@@ -40,6 +42,7 @@ class Datum {
   late String remark;
 
   factory Datum.fromJson(Map<String, dynamic> json) => Datum(
+        id: json["id"],
         vin: json["vin"],
         make: json["make"],
         mmodel: json["mmodel"],
@@ -52,5 +55,4 @@ class Datum {
         registrationDocument: json["registration_document"],
         remark: json["remark"],
       );
-
 }

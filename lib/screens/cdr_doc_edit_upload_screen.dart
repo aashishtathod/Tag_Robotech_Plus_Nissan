@@ -3,17 +3,21 @@ import 'dart:io';
 import 'package:custom_switch/custom_switch.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:robotech/res/cdr_widgets.dart';
+import 'package:robotech/res/constants.dart';
 import 'package:robotech/res/custom_colors.dart';
+import 'package:robotech/screens/cdr_screen.dart';
 
 class CdrDocEditScreen extends StatefulWidget {
   late String dealerCode, vin, password;
+  late int id;
 
   CdrDocEditScreen({
     Key? key,
-    /*required this.dealerCode,*/
     required this.vin,
+    required this.id,
     required this.dealerCode,
     required this.password,
   }) : super(key: key);
@@ -68,7 +72,7 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
     );
   }
 
-  buttonClicked() {
+  Future buttonClicked() async {
     if (all) {
       ok1 = true;
       ok2 = true;
@@ -112,7 +116,35 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
       }
     }
 
-    if (ok1 && ok2 && ok3 && ok4 && ok5) {}
+    if (ok1 && ok2 && ok3 && ok4 && ok5) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text("Button clicked"),
+      ));
+      var data = {
+        "customer_booking_form": (one) ? "Yes" : "No",
+        "DMS_retail_inv": (two) ? "Yes" : "No",
+        "DMS_gate_pass": (three) ? "Yes" : "No",
+        "payment_prof": (four) ? "Yes" : "No",
+        "registration_document": (five) ? "Yes" : "No",
+        "username": widget.dealerCode,
+        "password": widget.password,
+        "id": widget.id,
+      };
+      var response = await http.post(
+        Uri.parse(postCdrData),
+        body: data,
+      );
+
+      print("post api");
+      print(response.body);
+      if (response.statusCode == 200) {
+        showAlertDialog(context, "Success", "Data uploaded successfully.");
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text("Please upload the image or make particular button off"),
+      ));
+    }
     return null;
   }
 
@@ -499,5 +531,86 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
             ],
           ),
         ));
+  }
+
+
+
+  showAlertDialog(BuildContext context, String title, String msg) {
+    // set up the button
+    Widget okButton = TextButton(
+      child: Text("OK"),
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) {
+              return CDRScreen(
+                  dealerCode: widget.dealerCode, password: widget.password);
+            },
+          ),
+        );
+      },
+    );
+
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text(title),
+      content: Text(msg),
+      actions: [
+        okButton,
+      ],
+    );
+
+    // show the dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
+  Widget createButtons(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(18.0),
+          child: ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 15, horizontal: 18),
+                primary: kPrimaryColor,
+                onPrimary: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15.0),
+                ),
+              ),
+              child: const Text(
+                "Cancel",
+              )),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 15, horizontal: 18),
+                primary: kPrimaryColor,
+                onPrimary: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15.0),
+                ),
+              ),
+              onPressed: () {
+                buttonClicked();
+              },
+              child: const Text(
+                "Submit",
+              )),
+        ),
+      ],
+    );
   }
 }
