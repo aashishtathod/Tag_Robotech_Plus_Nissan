@@ -10,6 +10,7 @@ import 'package:robotech/model/model_inventory.dart';
 import 'package:robotech/res/constants.dart';
 import 'package:robotech/res/custom_colors.dart';
 import 'package:robotech/screens/cdr_screen.dart';
+import 'package:robotech/screens/cdr_sign_off.dart';
 import 'package:robotech/screens/stock_screen.dart';
 import 'package:robotech/screens/test_drive_screen.dart';
 import 'package:robotech/util/save_file_mobile.dart';
@@ -205,7 +206,8 @@ class _MainScreenState extends State<MainScreen> {
                         },
                         onDoubleTap:() {
                           if (dealerCode == groupCode) {
-                            generateTestDriveSignOff(groupCode, dealerName!);
+                            generateCdrSignOff(widget.dealerCode!, widget
+                                .password!, widget.dealerName!, widget.groupCode!);
                           } else {
                             Fluttertoast.showToast(
                                 msg:
@@ -319,7 +321,7 @@ class _MainScreenState extends State<MainScreen> {
       //Dispose the document.
       document.dispose();
       //Save and launch the file.
-      await saveAndLaunchFile(bytes, groupCode + '.pdf');
+      await saveAndLaunchFile(bytes, groupCode + '_Stock_report.pdf');
     }
   }
 
@@ -591,7 +593,7 @@ class _MainScreenState extends State<MainScreen> {
       //Dispose the document.
       document.dispose();
       //Save and launch the file.
-      await saveAndLaunchFile(bytes, groupCode + '.pdf');
+      await saveAndLaunchFile(bytes, groupCode + '_TD_report.pdf');
     }
   }
 
@@ -738,4 +740,6 @@ class _MainScreenState extends State<MainScreen> {
       row.cells[7].value = "1";
     }
   }
+
+
 }
