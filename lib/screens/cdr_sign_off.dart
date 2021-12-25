@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'dart:developer';
 
+import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -12,64 +12,59 @@ import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 generateCdrSignOff(String dealerCode, String password, String dealerName,
     String groupCode) async {
+  AsyncMemoizer _memoizer = AsyncMemoizer();
   try {
-    await Future.delayed(const Duration(seconds: 1));
-    var data = {'username': dealerCode, 'password': password};
+    _memoizer.runOnce(() async {
+      await Future.delayed(const Duration(seconds: 1));
+      var data = {'username': dealerCode, 'password': password};
 
-    final response =
-        await http.get(Uri.parse(getCdrDAta).replace(queryParameters: data));
+      final response =
+          await http.get(Uri.parse(getCdrDAta).replace(queryParameters: data));
 
-    if (response.statusCode == 200) {
+      if (response.statusCode == 200) {
+        Fluttertoast.showToast(
+            msg: "Generating stock sign off report!!!",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            // also possible "TOP" and "CENTER"
+            backgroundColor: Colors.black,
+            textColor: Colors.white);
 
-      Fluttertoast.showToast(
-          msg: "Generating stock sign off report!!!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          // also possible "TOP" and "CENTER"
-          backgroundColor: Colors.black,
-          textColor: Colors.white);
+        var jsonResponse = json.decode(response.body);
+        GetCdrData data = GetCdrData.fromJson(jsonResponse);
+        //print(data.data);
+        data.data;
 
-      var jsonResponse = json.decode(response.body);
-      GetCdrData data = GetCdrData.fromJson(jsonResponse);
-      //print(data.data);
-      data.data;
+        final PdfDocument document = PdfDocument();
+        //Add page to the PDF
+        final PdfPage page = document.pages.add();
+        //Get page client size
+        final Size pageSize = page.getClientSize();
+        //Draw rectangle
+        page.graphics.drawRectangle(
+            bounds: Rect.fromLTWH(0, 0, pageSize.width, pageSize.height),
+            pen: PdfPen(PdfColor(142, 170, 219, 255)));
 
-      final PdfDocument document = PdfDocument();
-      //Add page to the PDF
-      final PdfPage page = document.pages.add();
-      //Get page client size
-      final Size pageSize = page.getClientSize();
-      //Draw rectangle
-      page.graphics.drawRectangle(
-          bounds: Rect.fromLTWH(0, 0, pageSize.width, pageSize.height),
-          pen: PdfPen(PdfColor(142, 170, 219, 255)));
+        final PdfGrid grid = getGridCdr(data.data);
 
-      final PdfGrid grid = getGridCdr(data.data);
+        //Draw the header section by creating text element
+        final PdfLayoutResult result =
+            drawHeaderCdr(page, pageSize, grid, dealerName, groupCode);
 
-      //Draw the header section by creating text element
-      final PdfLayoutResult result =
-          drawHeaderCdr(page, pageSize, grid, dealerName, groupCode);
+        //Draw grid
+        drawGridCdr(page, grid, result);
 
-      //Draw grid
-      drawGridCdr(page, grid, result);
-
-      final List<int> bytes = document.save();
-      //Dispose the document.
-      document.dispose();
-      //Save and launch the file.
-      await saveAndLaunchFile(bytes, dealerCode + '_CDR_report.pdf');
-    } else {
-
-    }
+        final List<int> bytes = document.save();
+        //Dispose the document.
+        document.dispose();
+        //Save and launch the file.
+        await saveAndLaunchFile(bytes, dealerCode + '_CDR_report.pdf');
+      } else {
+        createPdfErrorToast();
+      }
+    });
   } catch (e) {
-
-    Fluttertoast.showToast(
-        msg: "Error occurred while generating pdf",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        // also possible "TOP" and "CENTER"
-        backgroundColor: Colors.black,
-        textColor: Colors.white);
+   createPdfErrorToast();
   }
 }
 
@@ -186,4 +181,14 @@ void drawGridCdr(PdfPage page, PdfGrid grid, PdfLayoutResult result) {
 
   result = grid.draw(
       page: page, bounds: Rect.fromLTWH(0, result.bounds.bottom + 40, 0, 0))!;
+}
+
+createPdfErrorToast(){
+  return Fluttertoast.showToast(
+      msg: "Error occurred while generating pdf",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      // also possible "TOP" and "CENTER"
+      backgroundColor: Colors.black,
+      textColor: Colors.white);
 }

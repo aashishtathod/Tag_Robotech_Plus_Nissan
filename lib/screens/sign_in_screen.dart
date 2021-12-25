@@ -183,18 +183,7 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   login(username, password) async {
-    /*Navigator.pop(context);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) {
-          return MainScreen(
-              groupCode: 'NA3A',
-              dealerCode: 'NA3A',
-              dealerName: 'Provincial Nissan - Nagpur');
-        },
-      ),
-    );*/
+
     var data = {'username': username, 'password': password};
     final response = await http.get(
         Uri.parse(validateUser).replace(queryParameters: data),

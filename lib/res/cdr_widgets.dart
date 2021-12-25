@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:robotech/res/custom_colors.dart';
 
 Widget createText1(String curText) {
   return Padding(
@@ -43,4 +42,3 @@ Widget createText3(String curText) {
                             : Colors.green)),
       ));
 }
-

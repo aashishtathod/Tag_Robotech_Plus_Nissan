@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:custom_switch/custom_switch.dart';
+//import 'package:custom_switch/custom_switch.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:robotech/res/cdr_widgets.dart';
 import 'package:robotech/res/constants.dart';
 import 'package:robotech/res/custom_colors.dart';
+import 'package:robotech/res/switch_button.dart';
 import 'package:robotech/screens/cdr_screen.dart';
 
 class CdrDocEditScreen extends StatefulWidget {
@@ -48,25 +49,32 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
   PickedFile? _imageFile5;
   File? _selectedFile5;
 
+  final TextEditingController _textEditingController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: kPrimaryColor,
-        title: Text(
-          widget.vin,
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: true,
+          backgroundColor: kPrimaryColor,
+          title: Text(
+            widget.vin,
+          ),
         ),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            createCard1("Customer Booking Form"),
-            createCard2("DMS Retail Invoice"),
-            createCard3("Dms Gate Pass"),
-            createCard4("Proof Of Payment"),
-            createCard5("Registration Document"),
-            createButtons(context),
-          ],
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              createCard1("Customer Booking Form"),
+              createCard2("DMS Retail Invoice"),
+              createCard3("Dms Gate Pass"),
+              createCard4("Proof Of Payment"),
+              createCard5("Registration Document"),
+              createCard6("Remarks"),
+              createButtons(context),
+            ],
+          ),
         ),
       ),
     );
@@ -129,6 +137,7 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
           "username": widget.dealerCode.toString(),
           "password": widget.password.toString(),
           "id": widget.id.toString(),
+          "remarks": _textEditingController.text.toString()
         };
 
         var response = await http.post(
@@ -140,11 +149,12 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
           showAlertDialog(context, "Success", "Data uploaded successfully.");
         }
       } catch (e) {
-        print(e);
+        // print(e);
         createSnackBar("Failed to upload data.");
       }
     } else {
-      createSnackBar("Please upload the required images , or make particular one  \"No\".");
+      createSnackBar(
+          "Please upload the required images , or make particular one  \"No\".");
     }
     //return null;
   }
@@ -198,7 +208,10 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
                               _selectedFile1 = File(_imageFile1!.path);
                             }
                           });
-                        } catch (e) {}
+                        } catch (e) {
+                          createSnackBar("Failed to load image !!!");
+
+                        }
                       },
                       child: Container(
                         decoration: BoxDecoration(
@@ -275,7 +288,9 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
                               _selectedFile2 = File(_imageFile2!.path);
                             }
                           });
-                        } catch (e) {}
+                        } catch (e) {
+                          createSnackBar("Failed to load image !!!");
+                        }
                       },
                       child: Container(
                         decoration: BoxDecoration(
@@ -352,7 +367,9 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
                               _selectedFile3 = File(_imageFile3!.path);
                             }
                           });
-                        } catch (e) {}
+                        } catch (e) {
+                          createSnackBar("Failed to load image !!!");
+                        }
                       },
                       child: Container(
                         decoration: BoxDecoration(
@@ -429,7 +446,9 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
                               _selectedFile4 = File(_imageFile4!.path);
                             }
                           });
-                        } catch (e) {}
+                        } catch (e) {
+                          createSnackBar("Failed to load image !!!");
+                        }
                       },
                       child: Container(
                         decoration: BoxDecoration(
@@ -506,7 +525,9 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
                               _selectedFile5 = File(_imageFile5!.path);
                             }
                           });
-                        } catch (e) {}
+                        } catch (e) {
+                          createSnackBar("Failed to load image !!!");
+                        }
                       },
                       child: Container(
                         decoration: BoxDecoration(
@@ -534,6 +555,37 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
         ));
   }
 
+  createCard6(String doc) {
+    return Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        elevation: 10,
+        margin: EdgeInsets.symmetric(horizontal: 18, vertical: 15),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              createText2(doc),
+              createText1("(optional)"),
+              const SizedBox(
+                height: 10,
+              ),
+              TextField(
+                controller: _textEditingController,
+                textAlign: TextAlign.start,
+                decoration: const InputDecoration(
+                  hintText: "Enter Remarks",
+                  filled: true,
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(color: Colors.grey),
+                ),
+              )
+            ],
+          ),
+        ));
+  }
+
   showAlertDialog(BuildContext context, String title, String msg) {
     // set up the button
     Widget okButton = TextButton(
@@ -556,7 +608,6 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
     AlertDialog alert = AlertDialog(
       title: Text(title),
       content: Text(msg),
-
       actions: [
         okButton,
       ],
@@ -579,7 +630,9 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
         Padding(
           padding: const EdgeInsets.all(18.0),
           child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                _onWillPop();
+              },
               style: ElevatedButton.styleFrom(
                 padding:
                     const EdgeInsets.symmetric(vertical: 15, horizontal: 18),
@@ -623,5 +676,26 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       behavior: SnackBarBehavior.floating,
     ));
+  }
+
+  Future<bool> _onWillPop() async {
+    return (await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Are you sure ?'),
+            content: const Text('Do you want to cancel progress and go back ?'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('No'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Yes'),
+              ),
+            ],
+          ),
+        )) ??
+        false;
   }
 }
