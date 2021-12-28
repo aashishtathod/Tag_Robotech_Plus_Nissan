@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:async/async.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:nb_utils/nb_utils.dart';
 import 'package:robotech/model/model_getCdrData.dart';
 import 'package:robotech/res/cdr_widgets.dart';
 import 'package:robotech/res/constants.dart';
@@ -235,6 +235,34 @@ class CdrItemStatus extends StatefulWidget {
 }
 
 class _CdrItemStatusState extends State<CdrItemStatus> {
+  Future _getData() async {
+    AsyncMemoizer _memoizer = AsyncMemoizer();
+    try {
+      _memoizer.runOnce(() async {
+        await Future.delayed(const Duration(seconds: 1));
+        var data = {'username': widget.dealerCode, 'password': widget.password};
+
+        final response = await http
+            .get(Uri.parse(getCdrDAta).replace(queryParameters: data));
+
+        if (response.statusCode == 200) {
+          Fluttertoast.showToast(
+              msg: "Generating stock sign off report!!!",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              // also possible "TOP" and "CENTER"
+              backgroundColor: Colors.black,
+              textColor: Colors.white);
+
+          var jsonResponse = json.decode(response.body);
+          GetCdrData data = GetCdrData.fromJson(jsonResponse);
+          //print(data.data);
+          data.data;
+        } else {}
+      });
+    } catch (e) {}
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -340,6 +368,7 @@ class _CdrItemStatusState extends State<CdrItemStatus> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
+          Navigator.pop(context);
           Navigator.push(
             context,
             MaterialPageRoute(

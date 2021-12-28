@@ -9,7 +9,6 @@ import 'package:robotech/res/cdr_widgets.dart';
 import 'package:robotech/res/constants.dart';
 import 'package:robotech/res/custom_colors.dart';
 import 'package:robotech/res/switch_button.dart';
-import 'package:robotech/screens/cdr_screen.dart';
 
 class CdrDocEditScreen extends StatefulWidget {
   late String dealerCode, vin, password;
@@ -92,6 +91,7 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
         _selectedFile1 != null ? ok1 = true : ok1 = false;
       } else {
         ok1 = true;
+        _imageFile1 == null;
         _selectedFile1 == null;
       }
 
@@ -99,6 +99,7 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
         _selectedFile2 != null ? ok2 = true : ok2 = false;
       } else {
         ok2 = true;
+        _imageFile2 == null;
         _selectedFile2 == null;
       }
 
@@ -106,6 +107,7 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
         _selectedFile3 != null ? ok3 = true : ok3 = false;
       } else {
         ok3 = true;
+        _imageFile3 == null;
         _selectedFile3 == null;
       }
 
@@ -113,6 +115,7 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
         _selectedFile4 != null ? ok4 = true : ok4 = false;
       } else {
         ok4 = true;
+        _imageFile4 == null;
         _selectedFile4 == null;
       }
 
@@ -120,6 +123,7 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
         _selectedFile5 != null ? ok5 = true : ok5 = false;
       } else {
         ok5 = true;
+        _imageFile5 == null;
         _selectedFile5 == null;
       }
     }
@@ -128,28 +132,59 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
       createSnackBar("Uploading data, please wait !");
 
       try {
-        var data = {
-          "customer_booking_form": (one) ? "Yes" : "No",
-          "DMS_retail_inv": (two) ? "Yes" : "No",
-          "DMS_gate_pass": (three) ? "Yes" : "No",
-          "payment_prof": (four) ? "Yes" : "No",
-          "registration_document": (five) ? "Yes" : "No",
-          "username": widget.dealerCode.toString(),
-          "password": widget.password.toString(),
-          "id": widget.id.toString(),
-          "remarks": _textEditingController.text.toString()
-        };
+        var request = http.MultipartRequest("POST", Uri.parse(postCdrData));
 
-        var response = await http.post(
-          Uri.parse(postCdrData),
-          body: data,
-        );
+        request.headers.addAll({"accept": "*/*"});
+
+        if (_imageFile1 != null) {
+          request.files.add(await http.MultipartFile.fromPath(
+              "customer_booking_image", _selectedFile1!.path));
+        }
+
+        if (_imageFile2 != null) {
+          request.files.add(await http.MultipartFile.fromPath(
+              "dms_retail_image", _selectedFile2!.path));
+        }
+        if (_imageFile3 != null) {
+          request.files.add(await http.MultipartFile.fromPath(
+              "dms_gate_pass_image", _selectedFile3!.path));
+        }
+
+        if (_imageFile4 != null) {
+          request.files.add(await http.MultipartFile.fromPath(
+              "proof_payment_image", _selectedFile4!.path));
+        }
+
+        if (_imageFile5 != null) {
+          request.files.add(await http.MultipartFile.fromPath(
+              "registration_document_image", _selectedFile5!.path));
+        }
+
+        request.fields["customer_booking_form"] = (one) ? "Yes" : "No";
+        request.fields["DMS_retail_inv"] = (two) ? "Yes" : "No";
+        request.fields["DMS_gate_pass"] = (three) ? "Yes" : "No";
+        request.fields["payment_prof"] = (four) ? "Yes" : "No";
+        request.fields["registration_document"] = (five) ? "Yes" : "No";
+        request.fields["remark"] = _textEditingController.text.toString();
+
+        request.fields["username"] = widget.dealerCode.toString();
+        request.fields["password"] = widget.password.toString();
+        request.fields["id"] = widget.id.toString();
+
+        var response = await request.send();
 
         if (response.statusCode == 200) {
-          showAlertDialog(context, "Success", "Data uploaded successfully.");
+          showAlertDialog1(context, "Success", "Data uploaded successfully.");
+        } else {
+          print(response.contentLength);
+          print(response.stream);
+          print(response);
+          print(response.statusCode);
+          print(response.reasonPhrase);
+          createSnackBar("Failed to upload data.");
         }
       } catch (e) {
-        // print(e);
+        print(e);
         createSnackBar("Failed to upload data.");
       }
     } else {
@@ -201,7 +236,8 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
                       onTap: () async {
                         try {
                           _imageFile1 = (await _picker.getImage(
-                              source: ImageSource.camera))!;
+                            source: ImageSource.camera,
+                          ))!;
 
                           setState(() {
                             if (_imageFile1 != null) {
@@ -210,7 +246,6 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
                           });
                         } catch (e) {
                           createSnackBar("Failed to load image !!!");
-
                         }
                       },
                       child: Container(
@@ -281,7 +316,7 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
                       onTap: () async {
                         try {
                           _imageFile2 = (await _picker.getImage(
-                              source: ImageSource.camera))!;
+                              source: ImageSource.camera, imageQuality: 50))!;
 
                           setState(() {
                             if (_imageFile2 != null) {
@@ -586,13 +621,13 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
         ));
   }
 
-  showAlertDialog(BuildContext context, String title, String msg) {
+  showAlertDialog1(BuildContext context, String title, String msg) {
     // set up the button
     Widget okButton = TextButton(
       child: Text("OK"),
       onPressed: () {
         Navigator.pop(context);
-        Navigator.pushReplacement(
+        /*  Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) {
@@ -600,7 +635,7 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
                   dealerCode: widget.dealerCode, password: widget.password);
             },
           ),
-        );
+        );*/
       },
     );
 
@@ -623,29 +658,13 @@ class _CdrDocEditScreenState extends State<CdrDocEditScreen> {
     );
   }
 
+
+
   Widget createButtons(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Padding(
-          padding: const EdgeInsets.all(18.0),
-          child: ElevatedButton(
-              onPressed: () {
-                _onWillPop();
-              },
-              style: ElevatedButton.styleFrom(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 15, horizontal: 18),
-                primary: kPrimaryColor,
-                onPrimary: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15.0),
-                ),
-              ),
-              child: const Text(
-                "Cancel",
-              )),
-        ),
+
         Padding(
           padding: const EdgeInsets.all(20.0),
           child: ElevatedButton(
